@@ -16,6 +16,39 @@
 
 <template>
   <section class="wallboard section">
+    <div
+      class="flex gap-2 justify-end absolute w-full md:w-[28rem] top-14 right-0 bg-black/20 py-3 px-4 rounded-bl"
+    >
+      <sba-input
+        v-model="termFilter"
+        class="flex-1"
+        :placeholder="$t('term.filter')"
+        name="filter"
+        type="search"
+      >
+        <template #prepend>
+          <font-awesome-icon icon="filter" />
+        </template>
+      </sba-input>
+
+      <select
+        v-if="healthStatus.size > 1"
+        v-model="statusFilter"
+        aria-label="status-filter"
+        class="relative focus:z-10 focus:ring-indigo-500 focus:border-indigo-500 block sm:text-sm border-gray-300 rounded"
+      >
+        <option selected value="none" v-text="$t('term.all')" />
+        <optgroup :label="t('health.label')">
+          <option
+            v-for="status in healthStatus"
+            :key="status"
+            :value="status"
+            v-text="t('health.status.' + status)"
+          />
+        </optgroup>
+      </select>
+    </div>
+
     <sba-alert
       v-if="error"
       :error="error"
@@ -24,43 +57,53 @@
       severity="WARN"
     />
 
-    <p
-      v-if="!applicationsInitialized"
-      class="is-muted is-loading"
-      v-text="t('applications.loading_applications')"
-    />
-    <hex-mesh
-      v-if="applicationsInitialized"
-      :class-for-item="classForApplication"
-      :items="applications"
-      @click="select"
-    >
-      <template #item="{ item: application }">
-        <div :key="application.name" class="hex__body application">
-          <div class="application__status-indicator" />
-          <div class="application__header application__time-ago is-muted">
-            <sba-time-ago :date="application.statusTimestamp" />
-          </div>
-          <div class="application__body">
-            <h1 class="application__name" v-text="application.name" />
-            <p
-              class="application__instances is-muted"
-              v-text="
-                t('wallboard.instances_count', application.instances.length)
-              "
+    <sba-loading-spinner v-if="!applicationsInitialized" />
+
+    <template v-if="applicationsInitialized">
+      <div
+        v-if="termFilter.length > 0 && applications.length === 0"
+        class="flex w-full h-full items-center text-center text-white text-xl"
+        v-text="
+          t('term.no_results_for_term', {
+            term: termFilter,
+          })
+        "
+      />
+      <hex-mesh
+        v-if="applicationsInitialized"
+        :class-for-item="classForApplication"
+        :items="applications"
+        @click="select"
+      >
+        <template #item="{ item: application }">
+          <div :key="application.name" class="hex__body application">
+            <div class="application__status-indicator" />
+            <div class="application__header application__time-ago is-muted">
+              <sba-time-ago :date="application.statusTimestamp" />
+            </div>
+            <div class="application__body">
+              <h1 class="application__name" v-text="application.name" />
+              <p
+                class="application__instances is-muted"
+                v-text="
+                  t('wallboard.instances_count', application.instances.length)
+                "
+              />
+            </div>
+            <h2
+              class="application__footer application__version"
+              v-text="application.buildVersion"
             />
           </div>
-          <h2
-            class="application__footer application__version"
-            v-text="application.buildVersion"
-          />
-        </div>
-      </template>
-    </hex-mesh>
+        </template>
+      </hex-mesh>
+    </template>
   </section>
 </template>
 
-<script>
+<script lang="ts">
+import Fuse from 'fuse.js';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { HealthStatus } from '@/HealthStatus';
@@ -71,10 +114,62 @@ export default {
   components: { hexMesh },
   setup() {
     const { t } = useI18n();
+    const termFilter = ref('');
+    const statusFilter = ref('none');
 
     const { applications, applicationsInitialized, error } =
       useApplicationStore();
-    return { applications, applicationsInitialized, error, t };
+
+    const fuse = computed(
+      () =>
+        new Fuse(applications.value, {
+          includeScore: true,
+          useExtendedSearch: true,
+          threshold: 0.25,
+          keys: ['name', 'buildVersion', 'instances.name', 'instances.id'],
+        }),
+    );
+
+    const filteredApplications = computed(() => {
+      function filterByTerm() {
+        if (termFilter.value.length > 0) {
+          return fuse.value.search(termFilter.value).map((sr) => sr.item);
+        } else {
+          return applications.value;
+        }
+      }
+
+      function filterByStatus(result) {
+        if (statusFilter.value !== 'none') {
+          return result.filter(
+            (application) => application.status === statusFilter.value,
+          );
+        }
+
+        return result;
+      }
+
+      let result = filterByTerm();
+      result = filterByStatus(result);
+
+      return result;
+    });
+
+    const healthStatus = computed(() => {
+      return new Set(
+        applications.value.map((application) => application.status),
+      );
+    });
+
+    return {
+      applications: filteredApplications,
+      applicationsInitialized,
+      error,
+      t,
+      termFilter,
+      statusFilter,
+      healthStatus,
+    };
   },
   methods: {
     classForApplication(application) {
@@ -149,6 +244,7 @@ export default {
   width: 100%;
   padding: 2.5%;
   color: #fff;
+  word-break: break-word;
   font-size: 2em;
   font-weight: 600;
   line-height: 1.125;

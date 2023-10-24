@@ -108,7 +108,7 @@ export default {
     },
   },
   data: () => ({
-    hasLoaded: false,
+    hasLoaded: true,
     error: null,
     metrics: [],
   }),

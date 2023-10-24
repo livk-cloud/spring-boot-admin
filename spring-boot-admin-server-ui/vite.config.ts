@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
     test: {
       root: __dirname,
       environment: 'jsdom',
-      setupFiles: [resolve(frontendDir, 'tests/setup.js')],
+      setupFiles: [resolve(frontendDir, 'tests/setup.ts')],
       include: [
         resolve(
           frontendDir,
@@ -54,7 +54,6 @@ export default defineConfig(({ mode }) => {
     root: frontendDir,
     build: {
       target: 'es2020',
-      sourcemap: true,
       outDir,
       rollupOptions: {
         input: {

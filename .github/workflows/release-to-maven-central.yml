@@ -19,7 +19,7 @@ jobs:
     steps:
       - run: echo "Will start a Maven Central upload with version ${{ github.event.inputs.releaseversion }}"
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up settings.xml for Maven Central Repository
         uses: actions/setup-java@v3
@@ -56,7 +56,7 @@ jobs:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
       - name: Deploy Asciidoc docs output to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4.4.2
+        uses: JamesIves/github-pages-deploy-action@v4.4.3
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: spring-boot-admin-docs/target/generated-docs # The folder the action should deploy.
@@ -64,7 +64,7 @@ jobs:
           clean: true # Automatically remove deleted files from the deploy branch
 
       - name: Deploy Asciidoc docs output to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4.4.2
+        uses: JamesIves/github-pages-deploy-action@v4.4.3
         if: github.event.inputs.copyDocsToCurrent == 'true'
         with:
           branch: gh-pages # The branch the action should deploy to.
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Generate changelog
         id: changelog
@@ -112,7 +112,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set new SNAPSHOT version
         run: >
@@ -124,7 +124,7 @@ jobs:
             mvn versions:commit
 
       - name: Commit new SNAPSHOT version
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
