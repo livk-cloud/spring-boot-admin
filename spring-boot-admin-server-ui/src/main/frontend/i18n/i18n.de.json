@@ -3,6 +3,7 @@
     "server_connection_failed": "Verbindung zum Server fehlgeschlagen."
   },
   "term": {
+    "actuator_endpoint": "Actuator-Endpunkt",
     "affects_all_instances": "Betrifft alle {count} Instanzen",
     "affects_this_instance_only": "Betrifft nur diese Instanz",
     "all": "Alle",
@@ -17,6 +18,7 @@
     "delete": "Löschen",
     "deleted": "Gelöscht",
     "duration": "Dauer",
+    "epoch_time": "Epoch Zeit",
     "event": "Ereignis",
     "ever": "immer",
     "executing": "Wird ausgeführt...",
@@ -25,12 +27,17 @@
     "failed": "Fehlgeschlagen",
     "fetching_data": "Lade Daten...",
     "fetch_failed": "Abruf der Daten fehlgeschlagen.",
+    "filter_action": {
+      "reset": "Filter zurücksetzen"
+    },
     "float": "Float",
+    "homepage": "Startseite",
     "hours": "{count} Stunde | {count} Stunden",
     "instance": "Instanz",
     "instances": "Instanzen",
     "instances_tc": "{count} Instanz | {count} Instanzen",
     "integer": "Integer",
+    "keyword_search": "Schlagwortsuche",
     "menu": {
       "open": "Menü öffnen"
     },
@@ -42,6 +49,7 @@
     "stacktrace": "Stacktrace",
     "suppress": "Unterdrücken",
     "time": "Zeit",
+    "today": "Heute",
     "unsuppress": "Reaktivieren",
     "no_group": "Keine Gruppe",
     "username": "Username",
@@ -61,5 +69,16 @@
       "OUT_OF_SERVICE": "außer Betrieb",
       "OFFLINE": "offline"
     }
+  },
+  "time_short": {
+    "unknown": "unbekannt",
+    "milliseconds": "{count}ms",
+    "seconds": "{count}s",
+    "minutes": "{count}min",
+    "hours": "{count}h",
+    "days": "{count}d",
+    "weeks": "{count}Wo",
+    "months": "{count}Mo",
+    "years": "{count}a"
   }
 }

@@ -58,12 +58,17 @@
     </thead>
     <tbody>
       <tr v-if="newExchangesCount > 0" key="new-exchanges">
-        <td
-          colspan="9"
-          class="text-center"
-          @click="$emit('show-new-exchanges')"
-          v-text="`${newExchangesCount} new exchanges`"
-        />
+        <td colspan="9" class="text-center">
+          <Button
+            outlined
+            @click="$emit('show-new-exchanges')"
+            v-text="
+              $t('instances.httpexchanges.button.load_new', {
+                count: newExchangesCount,
+              })
+            "
+          />
+        </td>
       </tr>
     </tbody>
     <transition-group tag="tbody" name="fade-in">
@@ -81,7 +86,7 @@
         >
           <td
             class="httpexchanges__exchange-timestamp"
-            v-text="exchange.timestamp.format('L HH:mm:ss.SSS')"
+            v-text="formatDateTime(exchange.timestamp)"
           />
           <td
             class="httpexchanges__exchange-method"
@@ -157,36 +162,34 @@
   </table>
 </template>
 
-<script>
+<script setup lang="ts">
 import { parse } from 'iso8601-duration';
 import prettyBytes from 'pretty-bytes';
+import { Button } from 'primevue';
+import { ref } from 'vue';
 
+import { useDateTimeFormatter } from '@/composables/useDateTimeFormatter';
 import { toMilliseconds } from '@/utils/iso8601-duration';
+import { Exchange } from '@/views/instances/httpexchanges/Exchange';
 
-export default {
-  props: {
-    newExchangesCount: {
-      type: Number,
-      default: 0,
-    },
-    exchanges: {
-      type: Array,
-      default: () => [],
-    },
-  },
-  emits: ['show-new-exchanges'],
-  data: () => ({
-    showDetails: {},
-  }),
-  methods: {
-    prettyBytes,
-    toJson(obj) {
-      return JSON.stringify(obj, null, 4);
-    },
-    toMilliseconds,
-    parse,
-  },
+const { formatDateTime } = useDateTimeFormatter();
+
+type Props = {
+  newExchangesCount?: number;
+  exchanges?: Array<Exchange>;
 };
+
+withDefaults(defineProps<Props>(), {
+  newExchangesCount: 0,
+  exchanges: () => [],
+});
+
+defineEmits<{
+  (event: 'show-new-exchanges'): void;
+}>();
+
+const showDetails = ref<Record<string, boolean>>({});
+const toJson = (obj: any) => JSON.stringify(obj, null, 4);
 </script>
 
 <style lang="css">
@@ -205,14 +208,12 @@ export default {
   width: 130px;
 }
 .httpexchanges__exchange-method {
-  @apply font-mono;
   width: 100px;
 }
 .httpexchanges__exchange-uri {
   width: auto;
 }
 .httpexchanges__exchange-status {
-  @apply font-mono;
   width: 80px;
 }
 .httpexchanges__exchange-contentType {

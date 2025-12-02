@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import de.codecentric.boot.admin.server.notify.FeiShuNotifier;
 import de.codecentric.boot.admin.server.notify.HipchatNotifier;
 import de.codecentric.boot.admin.server.notify.LetsChatNotifier;
 import de.codecentric.boot.admin.server.notify.MailNotifier;
+import de.codecentric.boot.admin.server.notify.MattermostNotifier;
 import de.codecentric.boot.admin.server.notify.MicrosoftTeamsNotifier;
 import de.codecentric.boot.admin.server.notify.NotificationTrigger;
 import de.codecentric.boot.admin.server.notify.Notifier;
@@ -69,10 +70,12 @@ import de.codecentric.boot.admin.server.notify.PagerdutyNotifier;
 import de.codecentric.boot.admin.server.notify.RocketChatNotifier;
 import de.codecentric.boot.admin.server.notify.SlackNotifier;
 import de.codecentric.boot.admin.server.notify.TelegramNotifier;
+import de.codecentric.boot.admin.server.notify.WebexNotifier;
 import de.codecentric.boot.admin.server.notify.filter.FilteringNotifier;
 import de.codecentric.boot.admin.server.notify.filter.web.NotificationFilterController;
 
 @Configuration(proxyBeanMethods = false)
+@Conditional(SpringBootAdminServerEnabledCondition.class)
 @EnableConfigurationProperties(NotifierProxyProperties.class)
 @AutoConfigureAfter({ MailSenderAutoConfiguration.class })
 public class AdminServerNotifierAutoConfiguration {
@@ -221,6 +224,22 @@ public class AdminServerNotifierAutoConfiguration {
 	}
 
 	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnProperty(prefix = "spring.boot.admin.notify.mattermost", name = "api-url")
+	@AutoConfigureBefore({ NotifierTriggerConfiguration.class, CompositeNotifierConfiguration.class })
+	@Lazy(false)
+	public static class MattermostNotifierConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean
+		@ConfigurationProperties("spring.boot.admin.notify.mattermost")
+		public MattermostNotifier mattermostNotifier(InstanceRepository repository,
+				NotifierProxyProperties proxyProperties) {
+			return new MattermostNotifier(repository, createNotifierRestTemplate(proxyProperties));
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnProperty(prefix = "spring.boot.admin.notify.letschat", name = "url")
 	@AutoConfigureBefore({ NotifierTriggerConfiguration.class, CompositeNotifierConfiguration.class })
 	@Lazy(false)
@@ -358,6 +377,21 @@ public class AdminServerNotifierAutoConfiguration {
 		@ConfigurationProperties("spring.boot.admin.notify.feishu")
 		public FeiShuNotifier feiShuNotifier(InstanceRepository repository, NotifierProxyProperties proxyProperties) {
 			return new FeiShuNotifier(repository, createNotifierRestTemplate(proxyProperties));
+		}
+
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnProperty(prefix = "spring.boot.admin.notify.webex", name = "auth-token")
+	@AutoConfigureBefore({ NotifierTriggerConfiguration.class, CompositeNotifierConfiguration.class })
+	@Lazy(false)
+	public static class WebexNotifierConfiguration {
+
+		@Bean
+		@ConditionalOnMissingBean
+		@ConfigurationProperties("spring.boot.admin.notify.webex")
+		public WebexNotifier webexNotifier(InstanceRepository repository, NotifierProxyProperties proxyProperties) {
+			return new WebexNotifier(repository, createNotifierRestTemplate(proxyProperties));
 		}
 
 	}

@@ -26,11 +26,12 @@
       />
     </div>
     <sba-button
+      v-if="allowReset"
       class="ml-3"
       :class="{ 'is-loading': getStatusForLevel(null) === 'executing' }"
-      :disabled="!isConfigured || !allowReset"
+      :disabled="!isConfigured"
       @click.stop="selectLevel(null)"
-      v-text="$t('instances.loggers.reset')"
+      v-text="$t('instances.loggers.unset')"
     />
   </div>
 </template>
@@ -63,10 +64,19 @@ export default {
   },
   methods: {
     hasEffectiveLevel(level) {
-      return this.value.some((l) => l.effectiveLevel === level);
+      return this.value.some((l) => {
+        if (this.isLoggingGroup(l)) {
+          return this.hasConfiguredLevel(level);
+        } else {
+          return l.effectiveLevel === level;
+        }
+      });
     },
     hasConfiguredLevel(level) {
       return this.value.some((l) => l.configuredLevel === level);
+    },
+    isLoggingGroup(logger) {
+      return !!logger.members;
     },
     selectLevel(level) {
       this.$emit('input', level);
@@ -88,6 +98,8 @@ export default {
           level === 'WARN' && this.hasEffectiveLevel('WARN'),
         'is-active is-light':
           level === 'ERROR' && this.hasEffectiveLevel('ERROR'),
+        'is-active is-extra-light':
+          level === 'FATAL' && this.hasEffectiveLevel('FATAL'),
         'is-active is-black': level === 'OFF' && this.hasEffectiveLevel('OFF'),
         'is-loading': this.getStatusForLevel(level) === 'executing',
       };

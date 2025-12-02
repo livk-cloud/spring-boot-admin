@@ -22,7 +22,11 @@
   />
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+
+import { ActionScope } from '@/components/ActionScope';
+
 import Application from '@/services/application';
 import Instance from '@/services/instance';
 import { VIEW_GROUP } from '@/views/ViewGroup';
@@ -32,35 +36,32 @@ import {
   InstanceLoggers,
 } from '@/views/instances/loggers/service';
 
+const { instance, application } = defineProps<{
+  instance: Instance;
+  application: Application;
+}>();
+
+const scope = ref(
+  application.instances.length > 1
+    ? ActionScope.APPLICATION
+    : ActionScope.INSTANCE,
+);
+
+const service = computed(() =>
+  scope.value === ActionScope.INSTANCE
+    ? new InstanceLoggers(instance)
+    : new ApplicationLoggers(application),
+);
+
+function changeScope(newScope) {
+  scope.value = newScope;
+}
+</script>
+
+<script lang="ts">
+import { VIEW_GROUP } from '@/views/ViewGroup';
+
 export default {
-  components: { Loggers },
-  props: {
-    instance: {
-      type: Instance,
-      required: true,
-    },
-    application: {
-      type: Application,
-      required: true,
-    },
-  },
-  data: function () {
-    return {
-      scope: this.application.instances.length > 1 ? 'application' : 'instance',
-    };
-  },
-  computed: {
-    service() {
-      return this.scope === 'instance'
-        ? new InstanceLoggers(this.instance)
-        : new ApplicationLoggers(this.application);
-    },
-  },
-  methods: {
-    changeScope(scope) {
-      this.scope = scope;
-    },
-  },
   install({ viewRegistry }) {
     viewRegistry.addView({
       name: 'instances/loggers',

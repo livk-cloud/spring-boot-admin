@@ -15,7 +15,7 @@
   -->
 
 <template>
-  <table class="table-auto w-full">
+  <table class="threads">
     <thead>
       <tr>
         <th class="threads__thread-name" v-text="$t('term.name')" />
@@ -202,12 +202,20 @@ export default {
 <style lang="css">
 .threads {
   table-layout: fixed;
+  width: 100%;
 }
 .threads__thread-name {
   width: 250px;
+  max-width: 750px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.threads__thread-name:hover {
+  height: auto;
+  overflow: visible;
+  white-space: normal;
 }
 
 .threads__timeline {

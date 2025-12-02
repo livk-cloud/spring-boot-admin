@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class InstanceDiscoveryListenerTest {
+class InstanceDiscoveryListenerTest {
 
 	private InstanceDiscoveryListener listener;
 
@@ -59,15 +59,15 @@ public class InstanceDiscoveryListenerTest {
 	private InstanceRegistry registry;
 
 	@BeforeEach
-	public void setup() {
+	void setup() {
 		this.discovery = mock(DiscoveryClient.class);
 		InstanceRepository repository = new EventsourcingInstanceRepository(new InMemoryEventStore());
-		this.registry = spy(new InstanceRegistry(repository, new HashingInstanceUrlIdGenerator()));
+		this.registry = spy(new InstanceRegistry(repository, new HashingInstanceUrlIdGenerator(), (instance) -> true));
 		this.listener = new InstanceDiscoveryListener(this.discovery, this.registry, repository);
 	}
 
 	@Test
-	public void should_discover_instances_when_application_is_ready() {
+	void should_discover_instances_when_application_is_ready() {
 		when(this.discovery.getServices()).thenReturn(Collections.singletonList("service"));
 		when(this.discovery.getInstances("service")).thenReturn(
 				Collections.singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
@@ -75,14 +75,15 @@ public class InstanceDiscoveryListenerTest {
 		this.listener.onApplicationReady(null);
 
 		StepVerifier.create(this.registry.getInstances())
-				.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service")).verifyComplete();
+			.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service"))
+			.verifyComplete();
 	}
 
 	@Test
-	public void should_not_register_instance_when_serviceId_is_ignored() {
+	void should_not_register_instance_when_serviceId_is_ignored() {
 		when(this.discovery.getServices()).thenReturn(singletonList("service"));
 		when(this.discovery.getInstances("service"))
-				.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
+			.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
 
 		this.listener.setIgnoredServices(singleton("service"));
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
@@ -91,7 +92,19 @@ public class InstanceDiscoveryListenerTest {
 	}
 
 	@Test
-	public void should_not_register_instance_when_instanceMetadata_is_ignored() {
+	void should_not_register_instance_when_serviceId_is_ignored_caseInsensitive() {
+		when(this.discovery.getServices()).thenReturn(singletonList("service"));
+		when(this.discovery.getInstances("service"))
+			.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
+
+		this.listener.setIgnoredServices(singleton("SERVICE"));
+		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
+
+		StepVerifier.create(this.registry.getInstances()).verifyComplete();
+	}
+
+	@Test
+	void should_not_register_instance_when_instanceMetadata_is_ignored() {
 		when(this.discovery.getServices()).thenReturn(singletonList("service"));
 		when(this.discovery.getInstances("service")).thenReturn(singletonList(new DefaultServiceInstance("test-1",
 				"service", "localhost", 80, false, Collections.singletonMap("monitoring", "false"))));
@@ -103,10 +116,10 @@ public class InstanceDiscoveryListenerTest {
 	}
 
 	@Test
-	public void should_register_instance_when_serviceId_is_not_ignored() {
+	void should_register_instance_when_serviceId_is_not_ignored() {
 		when(this.discovery.getServices()).thenReturn(singletonList("service"));
 		when(this.discovery.getInstances("service"))
-				.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
+			.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
 
 		this.listener.setServices(singleton("notService2"));
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
@@ -115,7 +128,7 @@ public class InstanceDiscoveryListenerTest {
 	}
 
 	@Test
-	public void should_register_instance_when_instanceMetadata_is_not_ignored() {
+	void should_register_instance_when_instanceMetadata_is_not_ignored() {
 		when(this.discovery.getServices()).thenReturn(singletonList("service"));
 		when(this.discovery.getInstances("service")).thenReturn(singletonList(new DefaultServiceInstance("test-1",
 				"service", "localhost", 80, false, Collections.singletonMap("monitoring", "true"))));
@@ -127,97 +140,102 @@ public class InstanceDiscoveryListenerTest {
 	}
 
 	@Test
-	public void should_not_register_instance_when_serviceId_matches_ignored_pattern() {
+	void should_not_register_instance_when_serviceId_matches_ignored_pattern() {
 		when(this.discovery.getServices()).thenReturn(asList("service", "rabbit-1", "rabbit-2"));
 		when(this.discovery.getInstances("service"))
-				.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
+			.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
 
 		this.listener.setIgnoredServices(singleton("rabbit-*"));
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
 
 		StepVerifier.create(this.registry.getInstances())
-				.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service")).verifyComplete();
+			.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service"))
+			.verifyComplete();
 	}
 
 	@Test
-	public void should_not_register_instance_when_instanceMetadata_matches_ignored_metadata() {
+	void should_not_register_instance_when_instanceMetadata_matches_ignored_metadata() {
 		when(this.discovery.getServices()).thenReturn(asList("service", "rabbit-1", "rabbit-2"));
 		when(this.discovery.getInstances("service")).thenReturn(singletonList(new DefaultServiceInstance("test-1",
 				"service", "localhost", 80, false, Collections.singletonMap("monitoring", "true"))));
 		when(this.discovery.getInstances("rabbit-1"))
-				.thenReturn(singletonList(new DefaultServiceInstance("rabbit-test-1", "rabbit-1", "localhost", 80,
-						false, Collections.singletonMap("monitoring", "false"))));
+			.thenReturn(singletonList(new DefaultServiceInstance("rabbit-test-1", "rabbit-1", "localhost", 80, false,
+					Collections.singletonMap("monitoring", "false"))));
 		when(this.discovery.getInstances("rabbit-2"))
-				.thenReturn(singletonList(new DefaultServiceInstance("rabbit-test-1", "rabbit-2", "localhost", 80,
-						false, Collections.singletonMap("monitoring", "false"))));
+			.thenReturn(singletonList(new DefaultServiceInstance("rabbit-test-1", "rabbit-2", "localhost", 80, false,
+					Collections.singletonMap("monitoring", "false"))));
 
 		this.listener.setIgnoredInstancesMetadata(Collections.singletonMap("monitoring", "false"));
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
 
 		StepVerifier.create(this.registry.getInstances())
-				.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service")).verifyComplete();
+			.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service"))
+			.verifyComplete();
 	}
 
 	@Test
-	public void should_register_instances_when_serviceId_matches_wanted_pattern() {
+	void should_register_instances_when_serviceId_matches_wanted_pattern() {
 		when(this.discovery.getServices()).thenReturn(asList("service", "rabbit-1", "rabbit-2"));
 		when(this.discovery.getInstances("service"))
-				.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
+			.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
 
 		this.listener.setServices(singleton("ser*"));
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
 
 		StepVerifier.create(this.registry.getInstances())
-				.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service")).verifyComplete();
+			.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service"))
+			.verifyComplete();
 	}
 
 	@Test
-	public void should_register_instances_when_instanceMetadata_matches_wanted_metadata() {
+	void should_register_instances_when_instanceMetadata_matches_wanted_metadata() {
 		when(this.discovery.getServices()).thenReturn(asList("service", "rabbit-1", "rabbit-2"));
 		when(this.discovery.getInstances("service")).thenReturn(singletonList(new DefaultServiceInstance("test-1",
 				"service", "localhost", 80, false, Collections.singletonMap("monitoring", "true"))));
 		when(this.discovery.getInstances("rabbit-1"))
-				.thenReturn(singletonList(new DefaultServiceInstance("rabbit-test-1", "rabbit-1", "localhost", 80,
-						false, Collections.singletonMap("monitoring", "false"))));
+			.thenReturn(singletonList(new DefaultServiceInstance("rabbit-test-1", "rabbit-1", "localhost", 80, false,
+					Collections.singletonMap("monitoring", "false"))));
 		when(this.discovery.getInstances("rabbit-2"))
-				.thenReturn(singletonList(new DefaultServiceInstance("rabbit-test-1", "rabbit-2", "localhost", 80,
-						false, Collections.singletonMap("monitoring", "false"))));
+			.thenReturn(singletonList(new DefaultServiceInstance("rabbit-test-1", "rabbit-2", "localhost", 80, false,
+					Collections.singletonMap("monitoring", "false"))));
 
 		this.listener.setInstancesMetadata(Collections.singletonMap("monitoring", "true"));
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
 
 		StepVerifier.create(this.registry.getInstances())
-				.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service")).verifyComplete();
+			.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service"))
+			.verifyComplete();
 	}
 
 	@Test
-	public void should_register_instances_when_serviceId_matches_wanted_pattern_and_ignored_pattern() {
+	void should_register_instances_when_serviceId_matches_wanted_pattern_and_ignored_pattern() {
 		when(this.discovery.getServices()).thenReturn(asList("service-1", "service", "rabbit-1", "rabbit-2"));
 		when(this.discovery.getInstances("service"))
-				.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
+			.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
 		when(this.discovery.getInstances("service-1"))
-				.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service-1", "localhost", 80, false)));
+			.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service-1", "localhost", 80, false)));
 
 		this.listener.setServices(singleton("ser*"));
 		this.listener.setIgnoredServices(singleton("service-*"));
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
 
 		StepVerifier.create(this.registry.getInstances())
-				.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service")).verifyComplete();
+			.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service"))
+			.verifyComplete();
 	}
 
 	@Test
-	public void should_not_register_instances_when_instanceMetadata_matches_wanted_metadata_and_ignored_metadata() {
+	void should_not_register_instances_when_instanceMetadata_matches_wanted_metadata_and_ignored_metadata() {
 		when(this.discovery.getServices()).thenReturn(asList("service", "service-1"));
-		when(this.discovery.getInstances("service")).thenReturn(singletonList(
-				new DefaultServiceInstance("test-1", "service", "localhost", 80, false, new HashMap<String, String>() {
+		when(this.discovery.getInstances("service")).thenReturn(
+				singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false, new HashMap<>() {
 					{
 						put("monitoring", "true");
 						put("management", "true");
 					}
 				})));
-		when(this.discovery.getInstances("service-1")).thenReturn(singletonList(new DefaultServiceInstance("test-1",
-				"service-1", "localhost", 80, false, new HashMap<String, String>() {
+		when(this.discovery.getInstances("service-1")).thenReturn(singletonList(
+				new DefaultServiceInstance("test-1", "service-1", "localhost", 80, false, new HashMap<>() {
 					{
 						put("monitoring", "true");
 						put("management", "false");
@@ -229,14 +247,15 @@ public class InstanceDiscoveryListenerTest {
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
 
 		StepVerifier.create(this.registry.getInstances())
-				.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service-1")).verifyComplete();
+			.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service-1"))
+			.verifyComplete();
 	}
 
 	@Test
-	public void should_register_instance_when_new_service_instance_is_discovered() {
+	void should_register_instance_when_new_service_instance_is_discovered() {
 		when(this.discovery.getServices()).thenReturn(singletonList("service"));
 		when(this.discovery.getInstances("service"))
-				.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
+			.thenReturn(singletonList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false)));
 
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
 
@@ -250,7 +269,7 @@ public class InstanceDiscoveryListenerTest {
 	}
 
 	@Test
-	public void should_only_discover_new_instances_when_new_heartbeat_is_emitted() {
+	void should_only_discover_new_instances_when_new_heartbeat_is_emitted() {
 		Object heartbeat = new Object();
 		this.listener.onParentHeartbeat(new ParentHeartbeatEvent(new Object(), heartbeat));
 
@@ -268,14 +287,14 @@ public class InstanceDiscoveryListenerTest {
 	}
 
 	@Test
-	public void should_remove_instances_when_they_are_no_longer_available_in_discovery() {
-		StepVerifier.create(this.registry.register(Registration.create("ignored", "http://health").build()))
+	void should_remove_instances_when_they_are_no_longer_available_in_discovery() {
+		StepVerifier.create(this.registry.register(Registration.create("ignored", "https://health").build()))
 			.consumeNextWith((id) -> {
 			})
 			.verifyComplete();
 		StepVerifier
 			.create(this.registry
-				.register(Registration.create("different-source", "http://health2").source("http-api").build()))
+				.register(Registration.create("different-source", "https://health2").source("http-api").build()))
 			.consumeNextWith((id) -> {
 			})
 			.verifyComplete();
@@ -325,11 +344,11 @@ public class InstanceDiscoveryListenerTest {
 	}
 
 	@Test
-	public void should_not_throw_error_when_conversion_fails_and_proceed_with_next_instance() {
+	void should_not_throw_error_when_conversion_fails_and_proceed_with_next_instance() {
 		when(this.discovery.getServices()).thenReturn(singletonList("service"));
 		when(this.discovery.getInstances("service"))
-				.thenReturn(asList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false),
-						new DefaultServiceInstance("error-1", "error", "localhost", 80, false)));
+			.thenReturn(asList(new DefaultServiceInstance("test-1", "service", "localhost", 80, false),
+					new DefaultServiceInstance("error-1", "error", "localhost", 80, false)));
 		this.listener.setConverter((instance) -> {
 			if (instance.getServiceId().equals("error")) {
 				throw new IllegalStateException("Test-Error");
@@ -342,7 +361,8 @@ public class InstanceDiscoveryListenerTest {
 		this.listener.onInstanceRegistered(new InstanceRegisteredEvent<>(new Object(), null));
 
 		StepVerifier.create(this.registry.getInstances())
-				.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service")).verifyComplete();
+			.assertNext((a) -> assertThat(a.getRegistration().getName()).isEqualTo("service"))
+			.verifyComplete();
 	}
 
 }

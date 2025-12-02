@@ -20,53 +20,77 @@ import './style.css';
 import sbaConfig from '@/sba-config';
 import ViewRegistry from '@/viewRegistry';
 
-const addIframeView = (viewRegistry: ViewRegistry, { url, label, order }) => {
-  const urlWithoutScheme = url.replace(/^https?:[/][/]/, '');
-  viewRegistry.addView({
-    name: `external/${urlWithoutScheme}`,
-    path: `/external/${urlWithoutScheme.replace(/[^a-zA-Z]+/g, '-')}`,
-    label,
-    order,
+function addExternalView(
+  viewRegistry: ViewRegistry,
+  view: ExternalView,
+  parent?: string,
+) {
+  if (view.iframe) {
+    addIframeView(viewRegistry, view, parent);
+  } else {
+    addExternalLink(viewRegistry, view, parent);
+  }
+}
+
+function getViewOpts(view: ExternalView, parent?: string) {
+  const safeLabel = view.label.replace(/[^a-zA-Z0-9-_]/g, '');
+  const name = `/external/${safeLabel}`;
+
+  return {
+    name,
+    path: name,
+    parent,
+    label: view.label,
+    order: view.order,
+  };
+}
+
+export const addIframeView = (
+  viewRegistry: ViewRegistry,
+  view: ExternalView,
+  parent?: string,
+) => {
+  const viewOpts = {
+    ...getViewOpts(view, parent),
     component: {
       inheritAttrs: false,
       render() {
         return h('div', { class: 'external-view' }, [
-          h('iframe', { src: url }),
+          h('iframe', { src: view.url }),
         ]);
       },
     },
-  } as ComponentView);
+  } as ComponentView;
+
+  viewRegistry.addView(viewOpts);
+
+  view.children?.forEach((view) => {
+    addExternalView(viewRegistry, view, viewOpts.name);
+  });
 };
 
-const addExternalLink = (
+export const addExternalLink = (
   viewRegistry: ViewRegistry,
-  { url, label, order, children },
+  view: ExternalView,
   parent?: string,
 ) => {
-  const name = `external/${label.toLowerCase().replace(/[^a-zA-Z]+/g, '-')}`;
+  const viewOpts = {
+    ...getViewOpts(view, parent),
+    href: view.url,
+  } as LinkView;
 
-  viewRegistry.addView({
-    href: url,
-    name,
-    parent,
-    label,
-    order,
-  } as LinkView);
+  viewRegistry.addView(viewOpts);
 
-  children?.forEach((child) => {
-    addExternalLink(viewRegistry, child, name);
+  view.children?.forEach((view) => {
+    addExternalView(viewRegistry, view, viewOpts.name);
   });
 };
 
 export default {
   install({ viewRegistry }) {
-    const externalViews = sbaConfig.uiSettings.externalViews;
-    externalViews.forEach((view) => {
-      if (view.iframe) {
-        addIframeView(viewRegistry, view);
-      } else {
-        addExternalLink(viewRegistry, view);
-      }
+    const views = sbaConfig.uiSettings.externalViews;
+    views.forEach((view) => {
+      addExternalView(viewRegistry, view);
     });
   },
 };

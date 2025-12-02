@@ -1,5 +1,5 @@
 <!--
-  - Copyright 2014-2018 the original author or authors.
+  - Copyright 2014-2024 the original author or authors.
   -
   - Licensed under the Apache License, Version 2.0 (the "License");
   - you may not use this file except in compliance with the License.
@@ -20,43 +20,29 @@
       v-for="instance in instances"
       :key="instance.id"
       :data-testid="instance.id"
-      class="flex items-center hover:bg-gray-100 p-2 pr-6"
+      class="flex p-2 sm:pr-6 hover:bg-gray-100 gap-2 odd:bg-gray-50 items-center"
       @click.stop="showDetails(instance)"
     >
-      <div class="pr-3 md:w-16 text-center">
+      <div class="pt-1 md:w-16 text-center">
         <sba-status
           :date="instance.statusTimestamp"
           :status="instance.statusInfo.status"
         />
       </div>
-      <div class="flex-auto xl:flex-1 xl:w-1/4 truncate">
-        <a
-          :href="
-            instance.registration.serviceUrl || instance.registration.healthUrl
-          "
-          @click.stop
-          v-text="
-            instance.registration.serviceUrl || instance.registration.healthUrl
-          "
-        />
-        <sba-tag
-          v-if="instance.registration.metadata?.['group']"
-          class="ml-2"
-          :value="instance.registration.metadata?.['group']"
-          small
-        />
-        <br />
-        <span class="text-sm italic" v-text="instance.id" />
-      </div>
-      <div class="hidden xl:block w-1/4 overflow-x-scroll">
-        <sba-tags :small="true" :tags="instance.tags" :wrap="false" />
-      </div>
-      <div
-        class="hidden xl:block w-2/12 text-center"
-        v-text="instance.buildVersion"
-      />
-      <div class="hidden md:block flex-1 text-right">
-        <slot :instance="instance" name="actions" />
+      <div class="flex-1">
+        <div
+          class="flex gap-2 items-center instance-item"
+          :class="{ 'instance--show-url': instance.showUrl() }"
+        >
+          <ItemInformation
+            class="instance-item-information"
+            :instance="instance"
+          />
+          <div class="hidden lg:block">
+            <slot :instance="instance" name="actions" />
+          </div>
+        </div>
+        <ItemTags :instance="instance" />
       </div>
     </li>
   </ul>
@@ -66,7 +52,11 @@
 import { PropType } from 'vue';
 import { useRouter } from 'vue-router';
 
+import SbaStatus from '@/components/sba-status.vue';
+
 import Instance from '@/services/instance';
+import ItemInformation from '@/views/applications/listItem/ItemInformation.vue';
+import ItemTags from '@/views/applications/listItem/ItemTags.vue';
 
 const router = useRouter();
 
@@ -93,8 +83,22 @@ const showDetails = (instance: Instance) => {
 };
 </script>
 
-<style lang="css">
-.instances-list td {
-  vertical-align: middle;
+<style scoped>
+.instance--show-url {
+  .instance-item-information {
+    @apply gap-1;
+    grid-area: 1 / 1 / 1 / 3;
+  }
+}
+</style>
+
+<style>
+.instance-item.instance--show-url {
+  .instance-id {
+    @apply text-xs font-light;
+  }
+  .instance-version {
+    @apply text-xs font-light;
+  }
 }
 </style>

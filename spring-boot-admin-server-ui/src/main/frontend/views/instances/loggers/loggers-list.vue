@@ -36,26 +36,20 @@
             @input="(level) => $emit('configureLogger', { logger, level })"
           />
 
-          <p
+          <sba-alert
             v-if="
               loggersStatus[logger.name] &&
               loggersStatus[logger.name].status === 'failed'
             "
-            class="has-text-danger"
-          >
-            <font-awesome-icon
-              class="has-text-danger"
-              icon="exclamation-triangle"
-            />
-            <span
-              v-text="
+            :error="
+              new Error(
                 $t('instances.loggers.setting_loglevel_failed', {
                   logger: logger.name,
                   loglevel: loggersStatus[logger.name].level,
-                })
-              "
-            />
-          </p>
+                }),
+              )
+            "
+          />
         </td>
       </tr>
       <tr v-if="loggers.length === 0">
@@ -66,7 +60,9 @@
         />
       </tr>
     </tbody>
+
     <InfiniteLoading
+      v-if="infiniteScroll && loggers.length !== 0"
       ref="infiniteLoading"
       :identifier="loggers"
       @infinite="increaseScroll"
@@ -78,45 +74,33 @@
   </table>
 </template>
 
-<script>
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+<script setup lang="ts">
 import InfiniteLoading from 'v3-infinite-loading';
+import { ref } from 'vue';
 
 import 'v3-infinite-loading/lib/style.css';
 
-import SbaTag from '@/components/sba-tag.vue';
-
 import SbaLoggerControl from '@/views/instances/loggers/logger-control';
 
-export default {
-  components: { FontAwesomeIcon, SbaTag, InfiniteLoading, SbaLoggerControl },
-  props: {
-    levels: {
-      type: Array,
-      required: true,
-    },
-    loggers: {
-      type: Array,
-      required: true,
-    },
-    loggersStatus: {
-      type: Object,
-      required: true,
-    },
-  },
-  emits: ['configureLogger'],
-  data: () => ({
-    visibleLimit: 25,
-  }),
-  methods: {
-    increaseScroll($state) {
-      if (this.visibleLimit < this.loggers.length) {
-        this.visibleLimit += 25;
-        $state.loaded();
-      } else {
-        $state.complete();
-      }
-    },
-  },
-};
+const { loggers, infiniteScroll = true } = defineProps<{
+  levels: string[];
+  loggers: any[];
+  loggersStatus: Record<string, any>;
+  infiniteScroll?: boolean;
+}>();
+
+defineEmits<{
+  (event: 'configureLogger', payload: { logger: any; level: string }): void;
+}>();
+
+const visibleLimit = ref(25);
+
+function increaseScroll($state) {
+  if (visibleLimit.value <= loggers.length) {
+    visibleLimit.value += 25;
+    $state.loaded();
+  } else {
+    $state.complete();
+  }
+}
 </script>

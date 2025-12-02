@@ -20,16 +20,14 @@ import { Observable, concat, from, ignoreElements } from 'rxjs';
 import axios, {
   redirectOn401,
   registerErrorToastInterceptor,
-} from '../utils/axios.js';
+} from '../utils/axios';
 import waitForPolyfill from '../utils/eventsource-polyfill';
 import logtail from '../utils/logtail';
 import uri from '../utils/uri';
 
-const actuatorMimeTypes = [
-  'application/vnd.spring-boot.actuator.v2+json',
-  'application/vnd.spring-boot.actuator.v1+json',
-  'application/json',
-].join(',');
+import { useSbaConfig } from '@/sba-config';
+import { actuatorMimeTypes } from '@/services/spring-mime-types';
+import { transformToJSON } from '@/utils/transformToJSON';
 
 const isInstanceActuatorRequest = (url: string) =>
   url.match(/^instances[/][^/]+[/]actuator([/].*)?$/);
@@ -37,20 +35,20 @@ const isInstanceActuatorRequest = (url: string) =>
 class Instance {
   public readonly id: string;
   public registration: Registration;
-  public endpoints: any[];
+  public endpoints: any[] = [];
   public tags: { [key: string]: string }[];
   public statusTimestamp: string;
   public buildVersion: string;
   public statusInfo: StatusInfo;
   private readonly axios: AxiosInstance;
 
-  constructor({ id, ...instance }) {
+  constructor({ id, ...instance }: InstanceType<typeof Instance>) {
     Object.assign(this, instance);
     this.id = id;
     this.axios = axios.create({
       withCredentials: true,
       baseURL: uri`instances/${this.id}`,
-      headers: { Accept: actuatorMimeTypes },
+      headers: { Accept: actuatorMimeTypes.join(',') },
     });
     this.axios.interceptors.response.use(
       (response) => response,
@@ -60,6 +58,15 @@ class Instance {
       ),
     );
     registerErrorToastInterceptor(this.axios);
+  }
+
+  get metadata() {
+    return this.registration.metadata;
+  }
+
+  get metadataParsed() {
+    const metadata = this.registration.metadata || {};
+    return transformToJSON(metadata, 'LAX');
   }
 
   get isUnregisterable() {
@@ -115,6 +122,26 @@ class Instance {
         ...mBean,
       })),
     }));
+  }
+
+  showUrl() {
+    const sbaConfig = useSbaConfig();
+    if (sbaConfig.uiSettings.hideInstanceUrl) {
+      return false;
+    }
+
+    const hideUrlMetadata = this.registration.metadata?.['hide-url'];
+    return hideUrlMetadata !== 'true';
+  }
+
+  isUrlDisabled() {
+    const sbaConfig = useSbaConfig();
+    if (sbaConfig.uiSettings.disableInstanceUrl) {
+      return true;
+    }
+
+    const disableUrl = this.registration.metadata?.['disable-url'];
+    return disableUrl === 'true';
   }
 
   getId() {
@@ -206,6 +233,10 @@ class Instance {
     return this.axios.post(uri`actuator/refresh`);
   }
 
+  async busRefreshContext() {
+    return this.axios.post(uri`actuator/busrefresh`);
+  }
+
   async fetchLiquibase() {
     return this.axios.get(uri`actuator/liquibase`);
   }
@@ -278,6 +309,10 @@ class Instance {
 
   async fetchBeans() {
     return this.axios.get(uri`actuator/beans`);
+  }
+
+  async fetchConditions() {
+    return this.axios.get(uri`actuator/conditions`);
   }
 
   async fetchThreaddump() {
@@ -417,6 +452,18 @@ class Instance {
     });
   }
 
+  async fetchSbomIds() {
+    return this.axios.get(uri`actuator/sbom`, {
+      headers: { Accept: 'application/json' },
+    });
+  }
+
+  async fetchSbom(id) {
+    return this.axios.get(uri`actuator/sbom/${id}`, {
+      headers: { Accept: '*/*' },
+    });
+  }
+
   shutdown() {
     return this.axios.post(uri`actuator/shutdown`);
   }
@@ -428,7 +475,7 @@ class Instance {
 
 export default Instance;
 
-type Registration = {
+export type Registration = {
   name: string;
   managementUrl?: string;
   healthUrl: string;
@@ -438,6 +485,17 @@ type Registration = {
 };
 
 type StatusInfo = {
-  status: string;
+  status:
+    | 'UNKNOWN'
+    | 'OUT_OF_SERVICE'
+    | 'UP'
+    | 'DOWN'
+    | 'OFFLINE'
+    | 'RESTRICTED'
+    | string;
   details: { [key: string]: string };
 };
+
+export const DOWN_STATES = ['OUT_OF_SERVICE', 'DOWN', 'OFFLINE', 'RESTRICTED'];
+export const UP_STATES = ['UP'];
+export const UNKNOWN_STATES = ['UNKNOWN'];

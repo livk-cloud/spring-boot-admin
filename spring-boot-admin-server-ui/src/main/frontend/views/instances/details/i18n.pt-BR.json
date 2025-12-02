@@ -5,13 +5,14 @@
       "cache": {
         "hit_ratio": "Hit ratio",
         "hits": "Hits",
+        "misses": "Falhas",
         "size": "Tamanho"
       },
       "datasource": {
         "active_connections": "Conexões ativas",
         "min_connections": "Conexões mínimas",
         "max_connections": "Conexões máximas",
-        "title": "Datasource: {datasource}",
+        "title": "Datasource: {dataSource}",
         "unlimited": "ilimitado"
       },
       "gc": {
@@ -23,6 +24,9 @@
       "health": {
         "title": "Integridade"
       },
+      "health_group": {
+        "title": "Grupo de Integridade"
+      },
       "info": {
         "no_info_provided": "Nenhuma informação fornecida.",
         "title": "Info"
@@ -32,7 +36,8 @@
         "metaspace": "Metaspace",
         "size": "Tamanho",
         "title": "Memoria",
-        "used": "Usado"
+        "used": "Usado",
+        "committed": "Comprometido"
       },
       "metadata": {
         "no_data_provided": "Nenhum metadado fornecido.",
@@ -41,6 +46,8 @@
       "process": {
         "cpus": "CPUs",
         "pid": "PID",
+        "parent_pid": "PID Pai",
+        "owner": "Proprietário",
         "process_cpu_usage": "Uso de Process CPU",
         "system_cpu_usage": "Uso de System CPU",
         "title": "Processo",

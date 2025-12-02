@@ -1,11 +1,11 @@
-import { Ref, UnwrapRef, ref } from 'vue';
+import { Ref, ref } from 'vue';
 
-import ApplicationStore from '../store.js';
+import ApplicationStore from '../store';
 
 import Application from '@/services/application';
 
 let applicationStore: ApplicationStore | null = null;
-const applications = ref([] as Application[]);
+const applications: Ref<Application[]> = ref([]);
 const applicationsInitialized = ref(false);
 const error = ref(null);
 
@@ -17,13 +17,20 @@ export function createApplicationStore() {
 }
 
 type ApplicationStoreValue = {
-  applications: Ref<UnwrapRef<Application[]>>;
+  applications: Ref<Application[]>;
   applicationsInitialized: Ref<boolean>;
   error: Ref<any>;
   applicationStore: ApplicationStore;
+  findApplicationByInstanceId: (instanceId: string) => Ref<Application | null>;
 };
 
 export function useApplicationStore(): ApplicationStoreValue {
+  if (!applicationStore) {
+    throw new Error(
+      'ApplicationStore not created yet! Call createApplicationStore() first.',
+    );
+  }
+
   applicationStore.addEventListener('connected', () => {
     applicationsInitialized.value = true;
     error.value = null;
@@ -44,5 +51,10 @@ export function useApplicationStore(): ApplicationStoreValue {
     applicationsInitialized.value = false;
   });
 
-  return { applications, applicationsInitialized, error, applicationStore };
+  return {
+    applications,
+    applicationsInitialized,
+    error,
+    applicationStore,
+  };
 }

@@ -8,10 +8,13 @@
         "class_only": "class only",
         "configured": "configured"
       },
+      "group": {
+        "label": "Logging Groups"
+      },
       "instance": "Instance",
       "new": "new",
       "no_loggers_found": "No loggers found.",
-      "reset": "Reset",
+      "unset": "Unset",
       "setting_loglevel_failed": "Setting {logger} to {loglevel} failed."
     }
   }

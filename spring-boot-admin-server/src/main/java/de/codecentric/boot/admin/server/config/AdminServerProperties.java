@@ -36,8 +36,8 @@ import static java.util.Arrays.asList;
 public class AdminServerProperties {
 
 	/**
-	 * The context-path prefixes the path where the Admin Servers statics assets and api
-	 * should be served. Relative to the Dispatcher-Servlet.
+	 * The context-path prefixes the path where the Admin Servers static assets and api
+	 * should be served, relative to the Dispatcher-Servlet.
 	 */
 	private String contextPath = "";
 
@@ -91,7 +91,7 @@ public class AdminServerProperties {
 	public static class MonitorProperties {
 
 		/**
-		 * Time interval to check the status of instances.
+		 * Time interval to check the status of instances, must be greater than 1 second.
 		 */
 		@DurationUnit(ChronoUnit.MILLIS)
 		private Duration statusInterval = Duration.ofMillis(10_000L);
@@ -104,10 +104,24 @@ public class AdminServerProperties {
 		private Duration statusLifetime = Duration.ofMillis(10_000L);
 
 		/**
+		 * The maximal backoff for status check retries (retry after error has exponential
+		 * backoff, minimum backoff is 1 second).
+		 */
+		@DurationUnit(ChronoUnit.MILLIS)
+		private Duration statusMaxBackoff = Duration.ofMillis(60_000L);
+
+		/**
 		 * Time interval to check the info of instances,
 		 */
 		@DurationUnit(ChronoUnit.MILLIS)
 		private Duration infoInterval = Duration.ofMinutes(1L);
+
+		/**
+		 * The maximal backoff for info check retries (retry after error has exponential
+		 * backoff, minimum backoff is 1 second).
+		 */
+		@DurationUnit(ChronoUnit.MILLIS)
+		private Duration infoMaxBackoff = Duration.ofMinutes(10);
 
 		/**
 		 * Lifetime of info. The info won't be updated as long the last info isn't

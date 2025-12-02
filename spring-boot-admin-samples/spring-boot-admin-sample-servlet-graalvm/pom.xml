@@ -18,9 +18,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <artifactId>spring-boot-admin-sample-servlet-graalvm</artifactId>
+
     <name>Spring Boot Admin Sample Servlet GraalVM</name>
     <description>Spring Boot Admin Sample Servlet</description>
+
     <parent>
         <groupId>de.codecentric</groupId>
         <artifactId>spring-boot-admin-samples</artifactId>
@@ -29,7 +32,9 @@
     </parent>
 
     <properties>
-        <native-build-tools-plugin.version>0.9.28</native-build-tools-plugin.version>
+        <zstd-jni.version>1.5.7-6</zstd-jni.version>
+        <native-build-tools-plugin.version>0.11.3</native-build-tools-plugin.version>
+
         <maven.javadoc.skip>true</maven.javadoc.skip>
     </properties>
 
@@ -50,7 +55,7 @@
         <dependency>
             <groupId>com.github.luben</groupId>
             <artifactId>zstd-jni</artifactId>
-            <version>1.5.5-6</version>
+            <version>${zstd-jni.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
@@ -72,6 +77,7 @@
             </plugins>
         </pluginManagement>
     </build>
+
     <profiles>
         <profile>
             <id>native</id>
@@ -88,7 +94,6 @@
                                 </exclude>
                             </excludes>
                             <image>
-                                <!--<builder> paketobuildpacks/builder:tiny</builder> -->
                                 <builder>dashaun/native-builder:focal-arm64</builder>
                                 <env>
                                     <BP_NATIVE_IMAGE>true</BP_NATIVE_IMAGE>

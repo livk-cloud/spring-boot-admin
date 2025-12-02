@@ -15,38 +15,40 @@
   -->
 
 <template>
-  <div class="formatted" v-html="formatted" />
+  <pre class="formatted" v-html="formatted" />
 </template>
 
-<script>
-import { Autolink } from '@/utils/autolink';
-import objToString from '@/utils/objToString';
+<script setup lang="ts">
+import { computed } from 'vue';
 
-const autolink = new Autolink({
+import { createAutolink } from '@/utils/autolink';
+import { objToYaml } from '@/utils/objToYaml';
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
+
+const props = defineProps<{
+  value: unknown;
+}>();
+
+const autolinkFn = createAutolink({
   truncate: {
     length: 50,
     location: 'smart',
   },
 });
 
-export default {
-  props: {
-    value: {
-      type: null,
-      required: true,
-    },
-  },
-  computed: {
-    formatted() {
-      return autolink(objToString(this.value));
-    },
-  },
-};
+const formatted = computed(() => {
+  const yaml = objToYaml(props.value);
+  const sanitized = sanitizeHtml(yaml);
+  return autolinkFn(sanitized);
+});
 </script>
 
-<style>
+<style scoped>
 .formatted {
-  white-space: break-spaces;
-  word-break: break-word;
+  @apply whitespace-break-spaces break-words;
+
+  &:deep(a[href]) {
+    @apply underline;
+  }
 }
 </style>

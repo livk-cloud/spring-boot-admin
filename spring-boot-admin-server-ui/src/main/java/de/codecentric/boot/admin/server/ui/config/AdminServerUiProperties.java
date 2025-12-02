@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,6 +132,18 @@ public class AdminServerUiProperties {
 	 */
 	private Boolean enableToasts = false;
 
+	/**
+	 * Set to <code>true</code> to hide service URLs as well as actions that require them
+	 * in UI (e.g. jump to /health or /actuator).
+	 */
+	private Boolean hideInstanceUrl = false;
+
+	/**
+	 * Set to <code>true</code> to disable service URLs as well as actions that require
+	 * them in UI.
+	 */
+	private Boolean disableInstanceUrl = false;
+
 	private UiTheme theme = new UiTheme();
 
 	@lombok.Data
@@ -222,8 +234,8 @@ public class AdminServerUiProperties {
 
 	/**
 	 * Color shades are based on Tailwind's color palettes:
-	 * https://tailwindcss.com/docs/customizing-colors
-	 *
+	 * <a href="https://tailwindcss.com/docs/customizing-colors">tailwindcss.com</a>
+	 * <p>
 	 * name shade number mainColorLighter 50 mainColorLight 300 mainColor 500
 	 * mainColorDark 700 mainColorDarker 800
 	 */

@@ -5,13 +5,14 @@
       "cache": {
         "hit_ratio": "Коэффициент попадания",
         "hits": "Попадания",
+        "misses": "Промахи",
         "size": "Размер"
       },
       "datasource": {
         "active_connections": "Активные подключения",
         "min_connections": "Минимальные подключения",
         "max_connections": "Максимальные подключения",
-        "title": "Datasource: {datasource}",
+        "title": "Datasource: {dataSource}",
         "unlimited": "неограниченный"
       },
       "gc": {
@@ -23,6 +24,9 @@
       "health": {
         "title": "Здоровье"
       },
+      "health_group": {
+        "title": "Группа здоровья"
+      },
       "info": {
         "no_info_provided": "Информация не предоставлена.",
         "title": "Информация"
@@ -32,7 +36,8 @@
         "metaspace": "Metaspace",
         "size": "Размер",
         "title": "Память",
-        "used": "Используется"
+        "used": "Используется",
+        "committed": "Зарезервировано"
       },
       "metadata": {
         "no_data_provided": "Метаданные не предоставлены.",
@@ -40,7 +45,9 @@
       },
       "process": {
         "cpus": "Процессоры",
-        "pid": "PID",
+        "pid": "PID (Идентификатор процесса)",
+        "parent_pid": "Родительский PID",
+        "owner": "Владелец",
         "process_cpu_usage": "Использование процессами",
         "system_cpu_usage": "Использование системой",
         "title": "Процесс",

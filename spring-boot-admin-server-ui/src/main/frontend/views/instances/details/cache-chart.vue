@@ -34,7 +34,10 @@ export default {
   },
   data: () => ({}),
   watch: {
-    data: 'drawChart',
+    data: {
+      handler: 'drawChart',
+      deep: true,
+    },
   },
   mounted() {
     const margin = {
@@ -82,7 +85,7 @@ export default {
       const y = d3
         .scaleLinear()
         .range([this.height, 0])
-        .domain([0, d3.max(data, (d) => d.total) * 1.05]);
+        .domain([0, d3.max(data, (d) => d.totalPerInterval) * 1.05]);
 
       //draw areas
       const miss = this.areas
@@ -98,8 +101,8 @@ export default {
           d3
             .area()
             .x((d) => x(d.timestamp))
-            .y0((d) => y(d.hit))
-            .y1((d) => y(d.total)),
+            .y0((d) => y(d.hitsPerInterval))
+            .y1((d) => y(d.totalPerInterval)),
         );
       miss.exit().remove();
 
@@ -115,7 +118,7 @@ export default {
             .area()
             .x((d) => x(d.timestamp))
             .y0(y(0))
-            .y1((d) => y(d.hit)),
+            .y1((d) => y(d.hitsPerInterval)),
         );
       hit.exit().remove();
 

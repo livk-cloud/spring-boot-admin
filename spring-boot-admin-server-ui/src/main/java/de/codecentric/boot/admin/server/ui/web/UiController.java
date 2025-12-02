@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import de.codecentric.boot.admin.server.web.AdminController;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @AdminController
 public class UiController {
@@ -149,6 +150,10 @@ public class UiController {
 
 		private final Boolean enableToasts;
 
+		private final Boolean hideInstanceUrl;
+
+		private final Boolean disableInstanceUrl;
+
 	}
 
 	@lombok.Data
@@ -182,6 +187,9 @@ public class UiController {
 
 		public ExternalView(String label, String url, Integer order, boolean iframe, List<ExternalView> children) {
 			Assert.hasText(label, "'label' must not be empty");
+			if (isEmpty(children)) {
+				Assert.hasText(url, "'url' must not be empty");
+			}
 			this.label = label;
 			this.url = url;
 			this.order = order;

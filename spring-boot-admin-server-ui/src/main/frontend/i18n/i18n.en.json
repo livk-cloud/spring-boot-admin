@@ -3,6 +3,7 @@
     "server_connection_failed": "Server connection failed.  "
   },
   "term": {
+    "actuator_endpoint": "Actuator-Endpoint",
     "affects_all_instances": "Affects all {count} instances",
     "affects_this_instance_only": "Affects this instance only",
     "all": "all",
@@ -22,6 +23,7 @@
     "delete": "Delete",
     "deleted": "Deleted",
     "duration": "Duration",
+    "epoch_time": "Epoch Time",
     "event": "Event",
     "ever": "ever",
     "execute": "Execute",
@@ -32,12 +34,17 @@
     "fetching_data": "Fetching data...",
     "fetch_failed": "Fetching of data failed.",
     "float": "Float",
+    "homepage": "Homepage",
     "filter": "Filter",
+    "filter_action": {
+      "reset": "Reset filters"
+    },
     "hours": "{count} hour | {count} hours",
     "instance": "Instance",
     "instances": "Instances",
     "instances_tc": "{count} instance | {count} instances",
     "integer": "Integer",
+    "keyword_search": "Keyword search",
     "menu": {
       "open": "Open menu"
     },
@@ -49,6 +56,7 @@
     "stacktrace": "Stacktrace",
     "suppress": "Suppress",
     "time": "Time",
+    "today": "Today",
     "unsuppress": "Unsuppress",
     "no_group": "No Group",
     "username": "Username",
@@ -68,5 +76,16 @@
       "OUT_OF_SERVICE": "out of service",
       "OFFLINE": "offline"
     }
+  },
+  "time_short": {
+    "unknown": "unknown",
+    "milliseconds": "{count}ms",
+    "seconds": "{count}s",
+    "minutes": "{count}min",
+    "hours": "{count}h",
+    "days": "{count}d",
+    "weeks": "{count}wk",
+    "months": "{count}mo",
+    "years": "{count}y"
   }
 }

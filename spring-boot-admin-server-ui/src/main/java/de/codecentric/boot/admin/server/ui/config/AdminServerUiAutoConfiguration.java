@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 the original author or authors.
+ * Copyright 2014-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package de.codecentric.boot.admin.server.ui.config;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,8 +35,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.config.WebFluxConfigurer;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.templatemode.TemplateMode;
@@ -99,8 +100,7 @@ public class AdminServerUiAutoConfiguration {
 	public UiController homeUiController(UiExtensions uiExtensions) throws IOException {
 		List<String> extensionRoutes = new UiRoutesScanner(this.applicationContext)
 			.scan(this.adminUi.getExtensionResourceLocations());
-		List<String> routes = Stream.concat(DEFAULT_UI_ROUTES.stream(), extensionRoutes.stream())
-			.collect(Collectors.toList());
+		List<String> routes = Stream.concat(DEFAULT_UI_ROUTES.stream(), extensionRoutes.stream()).toList();
 
 		Settings uiSettings = Settings.builder()
 			.brand(this.adminUi.getBrand())
@@ -109,6 +109,8 @@ public class AdminServerUiAutoConfiguration {
 			.favicon(this.adminUi.getFavicon())
 			.faviconDanger(this.adminUi.getFaviconDanger())
 			.enableToasts(this.adminUi.getEnableToasts())
+			.hideInstanceUrl(this.adminUi.getHideInstanceUrl())
+			.disableInstanceUrl(this.adminUi.getDisableInstanceUrl())
 			.notificationFilterEnabled(
 					!this.applicationContext.getBeansOfType(NotificationFilterController.class).isEmpty())
 			.routes(routes)
@@ -194,7 +196,7 @@ public class AdminServerUiAutoConfiguration {
 				List<String> routesExcludes = Stream
 					.concat(DEFAULT_UI_ROUTE_EXCLUDES.stream(), this.adminUi.getAdditionalRouteExcludes().stream())
 					.map((path) -> webfluxBasePathSet ? webFluxBasePath + path : this.adminServer.path(path))
-					.collect(Collectors.toList());
+					.toList();
 
 				return new HomepageForwardingFilterConfig(homepage, routesIncludes, routesExcludes);
 			}
@@ -203,16 +205,19 @@ public class AdminServerUiAutoConfiguration {
 			public void addResourceHandlers(org.springframework.web.reactive.config.ResourceHandlerRegistry registry) {
 				registry.addResourceHandler(this.adminServer.path("/**"))
 					.addResourceLocations(this.adminUi.getResourceLocations())
-					.setCacheControl(this.adminUi.getCache().toCacheControl());
+					.setCacheControl(this.adminUi.getCache().toCacheControl())
+					.setMediaTypes(Map.of("js", new MediaType("application", "javascript")));
+
 				registry.addResourceHandler(this.adminServer.path("/extensions/**"))
 					.addResourceLocations(this.adminUi.getExtensionResourceLocations())
-					.setCacheControl(this.adminUi.getCache().toCacheControl());
+					.setCacheControl(this.adminUi.getCache().toCacheControl())
+					.setMediaTypes(Map.of("js", new MediaType("application", "javascript")));
 			}
 
 			@Bean
 			@ConditionalOnMissingBean
 			public de.codecentric.boot.admin.server.ui.web.reactive.HomepageForwardingFilter homepageForwardFilter(
-					HomepageForwardingFilterConfig homepageForwardingFilterConfig) throws IOException {
+					HomepageForwardingFilterConfig homepageForwardingFilterConfig) {
 				return new de.codecentric.boot.admin.server.ui.web.reactive.HomepageForwardingFilter(
 						homepageForwardingFilterConfig);
 			}
@@ -241,24 +246,21 @@ public class AdminServerUiAutoConfiguration {
 				this.applicationContext = applicationContext;
 			}
 
-			@Override
-			public void configurePathMatch(PathMatchConfigurer configurer) {
-				configurer.setUseTrailingSlashMatch(true);
-			}
-
 			@Bean
 			public HomepageForwardingFilterConfig homepageForwardingFilterConfig() throws IOException {
 				String homepage = normalizeHomepageUrl(this.adminServer.path("/"));
 
 				List<String> extensionRoutes = new UiRoutesScanner(this.applicationContext)
 					.scan(this.adminUi.getExtensionResourceLocations());
-				List<String> routesIncludes = Stream.concat(DEFAULT_UI_ROUTES.stream(), extensionRoutes.stream())
+				List<String> routesIncludes = Stream
+					.concat(DEFAULT_UI_ROUTES.stream(), Stream.concat(extensionRoutes.stream(), Stream.of("/")))
 					.map(this.adminServer::path)
-					.collect(Collectors.toList());
+					.toList();
+
 				List<String> routesExcludes = Stream
 					.concat(DEFAULT_UI_ROUTE_EXCLUDES.stream(), this.adminUi.getAdditionalRouteExcludes().stream())
 					.map(this.adminServer::path)
-					.collect(Collectors.toList());
+					.toList();
 
 				return new HomepageForwardingFilterConfig(homepage, routesIncludes, routesExcludes);
 			}
@@ -277,7 +279,7 @@ public class AdminServerUiAutoConfiguration {
 			@Bean
 			@ConditionalOnMissingBean
 			public de.codecentric.boot.admin.server.ui.web.servlet.HomepageForwardingFilter homepageForwardFilter(
-					HomepageForwardingFilterConfig homepageForwardingFilterConfig) throws IOException {
+					HomepageForwardingFilterConfig homepageForwardingFilterConfig) {
 				return new de.codecentric.boot.admin.server.ui.web.servlet.HomepageForwardingFilter(
 						homepageForwardingFilterConfig);
 			}

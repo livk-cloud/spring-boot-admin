@@ -18,16 +18,24 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>de.codecentric</groupId>
     <artifactId>spring-boot-admin</artifactId>
     <version>${revision}</version>
+
     <packaging>pom</packaging>
+
     <name>Spring Boot Admin</name>
     <description>Spring Boot Admin</description>
     <url>https://github.com/codecentric/spring-boot-admin/</url>
+
     <properties>
-        <revision>3.1.8-SNAPSHOT</revision>
+        <revision>3.5.7-SNAPSHOT</revision>
+
         <java.version>17</java.version>
+        <node.version>v22.12.0</node.version>
+
+        <require.maven.version>3.9</require.maven.version>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -35,76 +43,83 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
+        <!-- disable default maven site generation, but allow docusarus to hook into site lifecycle -->
+        <maven.site.skip>true</maven.site.skip>
+
         <!-- used dependencies versions -->
-        <spring-boot.version>3.1.5</spring-boot.version>
-        <spring-cloud.version>2022.0.4</spring-cloud.version>
-        <wiremock.version>3.0.1</wiremock.version>
-        <hazelcast-tests.version>5.3.4</hazelcast-tests.version>
+        <spring-boot.version>3.5.8</spring-boot.version>
+        <spring-cloud.version>2025.0.0</spring-cloud.version>
+
+        <jolokia-support-spring.version>2.4.2</jolokia-support-spring.version>
+
+        <checkstyle.version>12.2.0</checkstyle.version>
         <findbugs-jsr305.version>3.0.2</findbugs-jsr305.version>
-        <awaitility.version>4.2.0</awaitility.version>
-        <testcontainers.version>1.19.1</testcontainers.version>
-        <eureka-client.version>3.1.1</eureka-client.version>
-        <!-- Wiremock does not yet support jetty 11 (see also https://github.com/wiremock/wiremock/issues/1760). -->
-        <!--<jetty.version>11.0.6</jetty.version>-->
-        <jetty.version>12.0.2</jetty.version>
+
+        <wiremock.version>3.13.2</wiremock.version>
+        <hazelcast.version>5.6.0</hazelcast.version>
+        <awaitility.version>4.3.0</awaitility.version>
+        <testcontainers.version>1.21.3</testcontainers.version>
+        <jetty.version>12.1.4</jetty.version>
 
         <!-- plugin versions -->
-        <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
-        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
-        <versions-maven-plugin.version>2.16.1
-        </versions-maven-plugin.version> <!-- because of https://github.com/mojohaus/versions/issues/855 -->
-        <maven-clean-plugin.version>3.3.1</maven-clean-plugin.version>
-        <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
-        <maven-dependency-plugin.version>3.6.1</maven-dependency-plugin.version>
-        <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
-        <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
-        <maven-surefire-plugin.version>3.2.1</maven-surefire-plugin.version>
-        <maven-failsafe-plugin.version>3.2.1</maven-failsafe-plugin.version>
-        <maven-install-plugin.version>3.1.1</maven-install-plugin.version>
-        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-        <maven-javadoc-plugin.version>3.6.0</maven-javadoc-plugin.version>
-        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-        <maven-war-plugin.version>3.4.0</maven-war-plugin.version>
-        <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
-        <frontend-maven-plugin.version>1.14.0</frontend-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
-        <asciidoctor-maven-plugin.version>2.2.4</asciidoctor-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <!-- because of https://github.com/mojohaus/versions/issues/855 -->
+        <versions-maven-plugin.version>2.20.1</versions-maven-plugin.version>
+        <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
+        <maven-dependency-plugin.version>3.9.0</maven-dependency-plugin.version>
+        <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+        <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
+        <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
+        <maven-install-plugin.version>3.1.4</maven-install-plugin.version>
+        <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
+        <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+        <maven-resources-plugin.version>3.4.0</maven-resources-plugin.version>
+        <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+        <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
+        <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+        <frontend-maven-plugin.version>1.15.4</frontend-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <git-commit-id-maven-plugin.version>4.9.10</git-commit-id-maven-plugin.version>
-        <flatten-maven-plugin.version>1.5.0</flatten-maven-plugin.version>
-        <maven-checkstyle-plugin.version>3.3.0</maven-checkstyle-plugin.version>
-        <checkstyle.version>10.12.4</checkstyle.version>
-        <spring-javaformat-checkstyle.version>0.0.39</spring-javaformat-checkstyle.version>
-        <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
-        <node.version>v18.16.0</node.version>
-        <npm.version>9.5.1</npm.version>
+        <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
+        <cyclonedx-maven-plugin.version>2.9.1</cyclonedx-maven-plugin.version>
+        <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+        <spring-javaformat-maven-plugin.version>0.0.47</spring-javaformat-maven-plugin.version>
+        <central-publishing-maven-plugin.version>0.9.0</central-publishing-maven-plugin.version>
+        <spring-conf-prop-documenter-maven-plugin.version>0.7.2</spring-conf-prop-documenter-maven-plugin.version>
     </properties>
+
     <modules>
+        <module>spring-boot-admin-dependencies</module>
+        <module>spring-boot-admin-build</module>
         <module>spring-boot-admin-server</module>
         <module>spring-boot-admin-server-ui</module>
         <module>spring-boot-admin-client</module>
-        <module>spring-boot-admin-dependencies</module>
         <module>spring-boot-admin-docs</module>
-        <module>spring-boot-admin-build</module>
         <module>spring-boot-admin-starter-server</module>
         <module>spring-boot-admin-starter-client</module>
         <module>spring-boot-admin-samples</module>
     </modules>
+
     <organization>
         <name>codecentric AG</name>
-        <url>http://www.codecentric.de</url>
+        <url>https://www.codecentric.de</url>
     </organization>
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
         </license>
     </licenses>
+
     <scm>
         <connection>scm:git:git://github.com/codecentric/spring-boot-admin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/codecentric/spring-boot-admin.git</developerConnection>
         <url>https://github.com/codecentric/spring-boot-admin</url>
     </scm>
+
     <developers>
         <developer>
             <name>codecentric AG</name>
@@ -112,6 +127,7 @@
             <url>https://www.codecentric.de/</url>
         </developer>
     </developers>
+
     <build>
         <plugins>
             <plugin>
@@ -131,6 +147,9 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <source>${java.version}</source>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <docencoding>${project.reporting.outputEncoding}</docencoding>
+                    <charset>${project.reporting.outputEncoding}</charset>
                     <quiet>true</quiet>
                 </configuration>
                 <executions>
@@ -149,7 +168,6 @@
                 <configuration>
                     <configLocation>src/checkstyle/checkstyle.xml</configLocation>
                     <headerLocation>src/checkstyle/checkstyle-header.txt</headerLocation>
-                    <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failOnViolation>true</failOnViolation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
@@ -172,6 +190,16 @@
                     <parameters>true</parameters>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -215,7 +243,7 @@
                         <configuration>
                             <rules>
                                 <requireMavenVersion>
-                                    <version>3.5</version>
+                                    <version>${require.maven.version}</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
@@ -225,7 +253,7 @@
             <plugin>
                 <groupId>io.spring.javaformat</groupId>
                 <artifactId>spring-javaformat-maven-plugin</artifactId>
-                <version>${spring-javaformat-checkstyle.version}</version>
+                <version>${spring-javaformat-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>validate</phase>
@@ -237,6 +265,7 @@
                 </executions>
             </plugin>
         </plugins>
+
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -253,11 +282,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>${maven-clean-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>${maven-site-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -295,6 +319,16 @@
                     <version>${maven-install-plugin.version}</version>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>${maven-war-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${build-helper-maven-plugin.version}</version>
@@ -303,6 +337,11 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>flatten-maven-plugin</artifactId>
                     <version>${flatten-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.cyclonedx</groupId>
+                    <artifactId>cyclonedx-maven-plugin</artifactId>
+                    <version>${cyclonedx-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -322,6 +361,8 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration>
+                        <parallel>classesAndMethods</parallel>
+                        <useUnlimitedThreads>false</useUnlimitedThreads>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <rerunFailingTestsCount>2</rerunFailingTestsCount>
                         <includes>
@@ -362,7 +403,7 @@
                         <dependency>
                             <groupId>io.spring.javaformat</groupId>
                             <artifactId>spring-javaformat-checkstyle</artifactId>
-                            <version>${spring-javaformat-checkstyle.version}</version>
+                            <version>${spring-javaformat-maven-plugin.version}</version>
                         </dependency>
                     </dependencies>
                 </plugin>
@@ -377,23 +418,24 @@
                     <version>${git-commit-id-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.asciidoctor</groupId>
-                    <artifactId>asciidoctor-maven-plugin</artifactId>
-                    <version>${asciidoctor-maven-plugin.version}</version>
-                </plugin>
-                <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco-maven-plugin.version}</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.sonatype.plugins</groupId>
-                    <artifactId>nexus-staging-maven-plugin</artifactId>
-                    <version>${nexus-staging-maven-plugin.version}</version>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>${central-publishing-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.rodnansol</groupId>
+                    <artifactId>spring-configuration-property-documenter-maven-plugin</artifactId>
+                    <version>${spring-conf-prop-documenter-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
     <profiles>
         <profile>
             <id>include-cloud</id>
@@ -461,28 +503,12 @@
                     </plugin>
 
                     <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <extensions>true</extensions>
                         <configuration>
-                            <skip>true</skip>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>deploy-to-sonatype</id>
-                                <phase>deploy</phase>
-                                <goals>
-                                    <goal>deploy</goal>
-                                    <goal>release</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <serverId>oss.sonatype.org</serverId>
-                            <nexusUrl>https://oss.sonatype.org</nexusUrl>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -496,13 +522,6 @@
                 </property>
             </activation>
             <repositories>
-                <repository>
-                    <id>spring-release</id>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <url>https://repo.spring.io/release</url>
-                </repository>
                 <repository>
                     <id>spring-milestone</id>
                     <snapshots>
@@ -529,13 +548,6 @@
             </repositories>
             <pluginRepositories>
                 <pluginRepository>
-                    <id>spring-release</id>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <url>https://repo.spring.io/release</url>
-                </pluginRepository>
-                <pluginRepository>
                     <id>spring-milestone</id>
                     <snapshots>
                         <enabled>false</enabled>
@@ -551,17 +563,32 @@
                 </pluginRepository>
             </pluginRepositories>
         </profile>
+        <!--
+        Profile: noNpm
+        Set this profile to skip any frontend related build step in this project.
+        Skipping frontend tests can be achieved by using default flag -D skipTests.
+        -->
+        <profile>
+            <id>noNpm</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
+
     <distributionManagement>
         <snapshotRepository>
             <id>github</id>
             <name>GitHub Packages</name>
             <url>https://maven.pkg.github.com/codecentric/spring-boot-admin</url>
         </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <name>Nexus Release Repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
     </distributionManagement>
 </project>

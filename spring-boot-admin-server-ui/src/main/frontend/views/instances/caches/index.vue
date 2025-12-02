@@ -23,20 +23,17 @@
             :action-fn="clearCaches"
             :instance-count="application.instances.length"
             :show-info="false"
+            @scope-changed="changeScope"
           >
-            <template #default="slotProps">
-              <span
-                v-if="slotProps.refreshStatus === 'completed'"
-                v-text="$t('term.execution_successful')"
-              />
-              <span
-                v-else-if="slotProps.refreshStatus === 'failed'"
-                v-text="$t('term.execution_failed')"
-              />
-              <span v-else>
-                <font-awesome-icon icon="trash" />&nbsp;
-                <span v-text="$t('term.clear')" />
-              </span>
+            <template #completed>
+              <span v-text="$t('term.execution_successful')" />
+            </template>
+            <template #failed>
+              <span v-text="$t('term.execution_failed')" />
+            </template>
+            <template #default>
+              <font-awesome-icon icon="trash" />&nbsp;
+              <span v-text="$t('term.clear')" />
             </template>
           </sba-action-button-scoped>
 
@@ -68,6 +65,7 @@
         :application="application"
         :caches="filteredCaches"
         :instance="instance"
+        :scope="scope"
         :is-loading="isLoading"
       />
     </sba-panel>
@@ -76,6 +74,8 @@
 
 <script>
 import { flatMap, isEmpty } from 'lodash-es';
+
+import { ActionScope } from '@/components/ActionScope';
 
 import Application from '@/services/application';
 import Instance from '@/services/instance';
@@ -116,6 +116,7 @@ export default {
     error: null,
     caches: [],
     filter: '',
+    scope: ActionScope.INSTANCE,
   }),
   computed: {
     filteredCaches() {
@@ -156,6 +157,9 @@ export default {
       }
 
       return filterFn;
+    },
+    changeScope(scope) {
+      this.scope = scope;
     },
   },
   install({ viewRegistry }) {

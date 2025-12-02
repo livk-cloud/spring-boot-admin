@@ -1,10 +1,10 @@
-import { rest } from 'msw';
+import { HttpResponse, http } from 'msw';
 
-import { flyway } from './data.js';
+import { flyway } from './data';
 
 const flywayEndpoints = [
-  rest.get('/instances/:instanceId/actuator/flyway', (req, res, ctx) => {
-    return res(ctx.status(200), ctx.json(flyway));
+  http.get('/instances/:instanceId/actuator/flyway', () => {
+    return HttpResponse.json(flyway);
   }),
 ];
 

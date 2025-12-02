@@ -15,7 +15,21 @@
   -->
 
 <template>
-  <sba-panel :title="$t('instances.details.health.title')" :loading="loading">
+  <sba-accordion
+    :id="`health-details-panel__${instance.id}`"
+    v-model="panelOpen"
+    :title="$t('instances.details.health.title')"
+    :loading="loading"
+  >
+    <template #title>
+      <sba-status-badge
+        v-if="health.status"
+        :status="health.status"
+        class="ml-2 transition-opacity"
+        :class="{ 'opacity-0': !panelOpen }"
+      />
+    </template>
+
     <template #actions>
       <router-link
         :to="{ name: 'journal', query: { instanceId: instance.id } }"
@@ -72,7 +86,7 @@
         </template>
       </div>
     </template>
-  </sba-panel>
+  </sba-accordion>
 </template>
 
 <script lang="ts">
@@ -80,9 +94,10 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 import Instance from '@/services/instance';
 import healthDetails from '@/views/instances/details/health-details';
+import SbaAccordion from '@/views/instances/details/sba-accordion.vue';
 
 export default {
-  components: { FontAwesomeIcon, healthDetails },
+  components: { SbaAccordion, FontAwesomeIcon, healthDetails },
   props: {
     instance: {
       type: Instance,
@@ -94,20 +109,33 @@ export default {
     loading: false,
     liveHealth: null,
     healthGroups: [],
+    panelOpen: true,
     healthGroupOpenStatus: {} as {
       isOpen: boolean;
       collapsible: boolean;
     },
+    currentInstanceId: null,
   }),
   computed: {
     health() {
       return this.liveHealth || this.instance.statusInfo;
     },
   },
+  watch: {
+    instance: {
+      handler: 'reloadHealth',
+      immediate: true,
+    },
+  },
   created() {
     this.fetchHealth();
   },
   methods: {
+    reloadHealth() {
+      if (this.instance.id !== this.currentInstanceId) {
+        this.fetchHealth();
+      }
+    },
     isHealthGroupOpen(groupName: string) {
       return this.healthGroupOpenStatus[groupName].isOpen === true;
     },
@@ -125,6 +153,7 @@ export default {
       this.loading = true;
       try {
         const res = await this.instance.fetchHealth();
+        this.currentInstanceId = this.instance.id;
         this.liveHealth = res.data;
 
         if (Array.isArray(res.data.groups)) {

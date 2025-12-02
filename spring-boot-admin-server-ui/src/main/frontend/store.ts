@@ -26,7 +26,7 @@ import {
   tap,
 } from 'rxjs';
 
-import Application from './services/application.js';
+import Application from './services/application';
 
 export const findInstance = (
   applications: Application[],
@@ -135,9 +135,9 @@ export default class ApplicationStore {
   }
 
   stop() {
-    if (this.subscription) {
+    if (this.subscription && !this.subscription.closed) {
       try {
-        !this.subscription.closed && this.subscription.unsubscribe();
+        this.subscription.unsubscribe();
       } finally {
         this.subscription = null;
       }

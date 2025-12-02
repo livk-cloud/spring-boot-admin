@@ -15,7 +15,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import autolink, { Autolink } from './autolink';
+import autolink, { createAutolink } from './autolink';
 
 describe('autolink should', () => {
   it('return the input string for normal text', () => {
@@ -34,7 +34,7 @@ describe('autolink should', () => {
     const str =
       'Please visit http://extraordinary.com/very/very/log/hyperlink.';
 
-    const customAutolink = new Autolink({
+    const customAutolink = createAutolink({
       truncate: {
         length: 30,
         location: 'smart',
@@ -51,5 +51,11 @@ describe('autolink should', () => {
     expect(autolink(str)).toBe(
       '{"name":"John Smith","links":[{"rel":"random-link1","href":"<a href="https://localhost:8000/api/123/query?action=do_something&age=21" target="_blank" rel="noopener noreferrer">https://localhost:8000/api/123/query?action=do_something&age=21</a>","hreflang":null,"media":null,"title":null,"type":null,"deprecation":null}]}',
     );
+  });
+
+  it('does not take version numbers as as link', () => {
+    const str = '1.2.3.4';
+
+    expect(autolink(str)).toBe('1.2.3.4');
   });
 });

@@ -20,7 +20,8 @@ declare global {
 
   type UITheme = {
     color: string;
-    palette: {
+    backgroundEnabled: boolean;
+    palette?: {
       shade50: string;
       shade100: string;
       shade200: string;
@@ -60,11 +61,10 @@ declare global {
   type UISettings = {
     title: string;
     brand: string;
-    loginIcon: string;
     favicon: string;
     faviconDanger: string;
     pollTimer: PollTimer;
-    uiTheme: UITheme;
+    theme: UITheme;
     notificationFilterEnabled: boolean;
     rememberMeEnabled: boolean;
     availableLanguages: string[];
@@ -72,6 +72,9 @@ declare global {
     externalViews: ExternalView[];
     viewSettings: ViewSettings[];
     enableToasts: boolean;
+    hideInstanceUrl: boolean;
+    disableInstanceUrl: boolean;
+    allowUnsafeHtml: boolean;
   };
 
   type SBASettings = {
@@ -81,8 +84,8 @@ declare global {
       [key: string]: any;
     };
     extensions: {
-      js: Extension[];
-      css: Extension[];
+      js?: Extension[];
+      css?: Extension[];
     };
     csrf: {
       headerName: string;
@@ -124,6 +127,7 @@ declare global {
   }
 
   interface LinkView {
+    name: string;
     href?: string;
     label: string;
     order?: number;

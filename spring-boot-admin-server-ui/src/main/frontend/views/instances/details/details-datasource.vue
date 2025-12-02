@@ -15,48 +15,54 @@
   -->
 
 <template>
-  <sba-panel
+  <sba-accordion
     v-if="hasLoaded"
+    :id="`health-datasource-panel__${instance.id}`"
     :title="
       $t('instances.details.datasource.title', { dataSource: dataSource })
     "
   >
-    <div>
-      <sba-alert v-if="error" :error="error" :title="$t('term.fetch_failed')" />
+    <sba-alert v-if="error" :error="error" :title="$t('term.fetch_failed')" />
 
-      <div v-if="current" class="level datasource-current">
-        <div class="level-item has-text-centered">
-          <div>
-            <p
-              class="heading has-bullet has-bullet-info"
-              v-text="$t('instances.details.datasource.active_connections')"
-            />
-            <p v-text="current.active" />
-          </div>
-        </div>
-        <div class="level-item has-text-centered">
-          <div>
-            <p
-              class="heading"
-              v-text="$t('instances.details.datasource.min_connections')"
-            />
-            <p v-text="current.min" />
-          </div>
-        </div>
-        <div class="level-item has-text-centered">
-          <div>
-            <p
-              class="heading"
-              v-text="$t('instances.details.datasource.max_connections')"
-            />
-            <p v-if="current.max >= 0" v-text="current.max" />
-            <p v-else v-text="$t('instances.details.datasource.unlimited')" />
-          </div>
-        </div>
-      </div>
-      <datasource-chart v-if="chartData.length > 0" :data="chartData" />
-    </div>
-  </sba-panel>
+    <dl
+      v-if="current"
+      class="px-4 py-3 sm:grid sm:grid-cols-6 sm:gap-4 sm:px-6"
+    >
+      <dt
+        class="text-sm font-medium text-gray-500 sm:col-span-4"
+        v-text="$t('instances.details.datasource.active_connections')"
+      />
+      <dd
+        class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+        v-text="current.active"
+      />
+
+      <dt
+        class="text-sm font-medium text-gray-500 sm:col-span-4"
+        v-text="$t('instances.details.datasource.min_connections')"
+      />
+      <dd
+        class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+        v-text="current.min"
+      />
+
+      <dt
+        class="text-sm font-medium text-gray-500 sm:col-span-4"
+        v-text="$t('instances.details.datasource.max_connections')"
+      />
+      <dd
+        v-if="current.max >= 0"
+        class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+        v-text="current.max"
+      />
+      <dd
+        v-else
+        class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2"
+        v-text="$t('instances.details.datasource.unlimited')"
+      />
+    </dl>
+    <datasource-chart v-if="chartData.length > 0" :data="chartData" />
+  </sba-accordion>
 </template>
 
 <script>
@@ -68,9 +74,10 @@ import subscribing from '@/mixins/subscribing';
 import sbaConfig from '@/sba-config';
 import Instance from '@/services/instance';
 import datasourceChart from '@/views/instances/details/datasource-chart';
+import SbaAccordion from '@/views/instances/details/sba-accordion.vue';
 
 export default {
-  components: { datasourceChart },
+  components: { SbaAccordion, datasourceChart },
   mixins: [subscribing],
   props: {
     instance: {
@@ -87,21 +94,35 @@ export default {
     error: null,
     current: null,
     chartData: [],
+    currentInstanceId: null,
   }),
+  watch: {
+    instance: {
+      handler: 'initDatasourceMetrics',
+      immediate: true,
+    },
+  },
   methods: {
+    initDatasourceMetrics() {
+      if (this.instance.id !== this.currentInstanceId) {
+        this.currentInstanceId = this.instance.id;
+        this.hasLoaded = false;
+        this.error = null;
+        this.current = null;
+        this.chartData = [];
+      }
+    },
     async fetchMetrics() {
       const responseActive = this.instance.fetchMetric(
-        'data.source.active.connections',
+        'jdbc.connections.active',
         { name: this.dataSource },
       );
-      const responseMin = this.instance.fetchMetric(
-        'data.source.min.connections',
-        { name: this.dataSource },
-      );
-      const responseMax = this.instance.fetchMetric(
-        'data.source.max.connections',
-        { name: this.dataSource },
-      );
+      const responseMin = this.instance.fetchMetric('jdbc.connections.min', {
+        name: this.dataSource,
+      });
+      const responseMax = this.instance.fetchMetric('jdbc.connections.max', {
+        name: this.dataSource,
+      });
 
       return {
         active: (await responseActive).data.measurements[0].value,

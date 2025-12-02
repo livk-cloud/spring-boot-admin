@@ -33,7 +33,7 @@
         />
       </div>
     </nav>
-    <div class="flex-1 overflow-scroll bg-white p-2">
+    <div class="flex-1 overflow-y-scroll bg-white p-2">
       <div class="flex h-full items-start">
         <div
           v-if="selectedDomain"
@@ -228,8 +228,8 @@ export default {
             ? mBean.attr
               ? 'attributes'
               : mBean.op
-              ? 'operations'
-              : null
+                ? 'operations'
+                : null
             : null),
       };
       this.$router.replace({

@@ -2,19 +2,56 @@
   <sba-panel>
     <template v-if="applicationsCount > 0">
       <div class="flex flex-row md:flex-col items-center justify-center">
-        <template v-if="downCount === 0">
+        <template v-if="statusInfo.allUp">
           <font-awesome-icon icon="check-circle" class="text-green-500 icon" />
           <div class="text-center">
             <h1 class="font-bold text-2xl" v-text="$t('applications.all_up')" />
             <p class="text-gray-400" v-text="lastUpdate" />
           </div>
         </template>
-        <template v-else>
+        <template v-else-if="statusInfo.allDown">
           <font-awesome-icon icon="minus-circle" class="text-red-500 icon" />
           <div class="text-center">
             <h1
               class="font-bold text-2xl"
-              v-text="$t('applications.instances_down')"
+              v-text="$t('applications.all_down')"
+            />
+            <p class="text-gray-400" v-text="lastUpdate" />
+          </div>
+        </template>
+        <template v-if="statusInfo.allUnknown">
+          <font-awesome-icon
+            icon="question-circle"
+            class="text-gray-300 icon"
+          />
+          <div class="text-center">
+            <h1
+              class="font-bold text-2xl"
+              v-text="$t('applications.all_unknown')"
+            />
+            <p class="text-gray-400" v-text="lastUpdate" />
+          </div>
+        </template>
+        <template v-else-if="someInstancesDown">
+          <font-awesome-icon icon="minus-circle" class="text-red-500 icon" />
+          <div class="text-center">
+            <h1
+              class="font-bold text-2xl"
+              v-text="$t('applications.some_down')"
+            />
+            <p class="text-gray-400" v-text="lastUpdate" />
+          </div>
+        </template>
+
+        <template v-else-if="someInstancesUnknown">
+          <font-awesome-icon
+            icon="question-circle"
+            class="text-gray-300 icon"
+          />
+          <div class="text-center">
+            <h1
+              class="font-bold text-2xl"
+              v-text="$t('applications.some_unknown')"
             />
             <p class="text-gray-400" v-text="lastUpdate" />
           </div>
@@ -36,64 +73,38 @@
   </sba-panel>
 </template>
 
-<script>
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+
 import { useApplicationStore } from '@/composables/useApplicationStore';
+import { useDateTimeFormatter } from '@/composables/useDateTimeFormatter';
+import { getStatusInfo } from '@/services/application';
 
-const options = {
-  year: 'numeric',
-  month: 'numeric',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: 'numeric',
-  second: 'numeric',
-};
+const { applications } = useApplicationStore();
 
-export default {
-  setup() {
-    const { applications } = useApplicationStore();
-    return { applications };
-  },
-  data() {
-    return {
-      lastUpdate: new Date(),
-      dateTimeFormat: new Intl.DateTimeFormat(this.$i18n.locale, options),
-    };
-  },
-  computed: {
-    downCount() {
-      return this.applications.reduce((current, next) => {
-        return (
-          current +
-          next.instances.filter(
-            (instance) => instance.statusInfo.status !== 'UP',
-          ).length
-        );
-      }, 0);
-    },
-    applicationsCount() {
-      return this.applications.length;
-    },
-    instancesCount() {
-      return this.applications.reduce(
-        (current, next) => current + next.instances.length,
-        0,
-      );
-    },
-  },
-  watch: {
-    downCount() {
-      this.updateLastUpdateTime();
-    },
-  },
-  beforeMount() {
-    this.updateLastUpdateTime();
-  },
-  methods: {
-    updateLastUpdateTime() {
-      this.lastUpdate = this.dateTimeFormat.format(new Date());
-    },
-  },
-};
+const { formatDateTime } = useDateTimeFormatter();
+
+const lastUpdate = ref(formatDateTime(new Date()));
+
+const statusInfo = computed(() => {
+  return getStatusInfo(applications.value);
+});
+
+watch(statusInfo, () => {
+  lastUpdate.value = formatDateTime(new Date());
+});
+
+const applicationsCount = computed(() => {
+  return applications.value.length;
+});
+
+const someInstancesDown = computed(() => {
+  return statusInfo.value.someDown;
+});
+
+const someInstancesUnknown = computed(() => {
+  return statusInfo.value.someUnknown;
+});
 </script>
 
 <style scoped>
